@@ -1,0 +1,13 @@
+# generated / big stuff
+__pycache__/
+*.pyc
+datasets/
+fails_isic2017/
+GLR_pth/
+weights/
+*.pth
+*.csv
+
+# vscode / pycharm
+.vscode/
+.idea/
