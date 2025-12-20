@@ -140,25 +140,45 @@ class FPNDecoder(nn.Module):
         self.merge = MergeBlock(merge_policy)
         self.dropout = nn.Dropout2d(p=dropout, inplace=True)
 
+    # def forward(self, *features):
+    #     c2, c3, c4, c5 = features[-4:]
+
+    #     p5 = self.p5(c5)
+    #     p5 = self.ra5(p5)  # Apply RA on P5
+
+    #     p4 = self.p4(p5, c4)
+    #     p4 = self.ra4(p4)  # Apply RA on P4
+
+    #     p3 = self.p3(p4, c3)
+    #     p3 = self.ra3(p3)  # Apply RA on P3
+
+    #     p2 = self.p2(p3, c2)
+    #     p2 = self.ra2(p2)  # Apply RA on P2
+
+    #     feature_pyramid = [
+    #         seg_block(p) for seg_block, p in zip(self.seg_blocks, [p5, p4, p3, p2])
+    #     ]
+    #     x = self.merge(feature_pyramid)
+    #     x = self.dropout(x)
+
+    #     return x
     def forward(self, *features):
-        c2, c3, c4, c5 = features[-4:]
+    # Expect last 4 are [c2,c3,c4,c5]
+    c2, c3, c4, c5 = features[-4:]
 
-        p5 = self.p5(c5)
-        p5 = self.ra5(p5)  # Apply RA on P5
+    # 1) FPN feature path (NO RA here)
+    p5 = self.p5(c5)
+    p4 = self.p4(p5, c4)
+    p3 = self.p3(p4, c3)
+    p2 = self.p2(p3, c2)
 
-        p4 = self.p4(p5, c4)
-        p4 = self.ra4(p4)  # Apply RA on P4
+    # 2) Seg branches (SegBlock -> RA) (Fig.2)
+    s5 = self.ra5(self.seg5(p5))
+    s4 = self.ra4(self.seg4(p4))
+    s3 = self.ra3(self.seg3(p3))
+    s2 = self.ra2(self.seg2(p2))
 
-        p3 = self.p3(p4, c3)
-        p3 = self.ra3(p3)  # Apply RA on P3
-
-        p2 = self.p2(p3, c2)
-        p2 = self.ra2(p2)  # Apply RA on P2
-
-        feature_pyramid = [
-            seg_block(p) for seg_block, p in zip(self.seg_blocks, [p5, p4, p3, p2])
-        ]
-        x = self.merge(feature_pyramid)
-        x = self.dropout(x)
-
-        return x
+    # 3) Merge
+    x = self.merge([s5, s4, s3, s2])
+    x = self.dropout(x)
+    return x
