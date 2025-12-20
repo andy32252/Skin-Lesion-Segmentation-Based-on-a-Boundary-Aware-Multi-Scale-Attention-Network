@@ -163,22 +163,22 @@ class FPNDecoder(nn.Module):
 
     #     return x
     def forward(self, *features):
-    # Expect last 4 are [c2,c3,c4,c5]
-    c2, c3, c4, c5 = features[-4:]
-
-    # 1) FPN feature path (NO RA here)
-    p5 = self.p5(c5)
-    p4 = self.p4(p5, c4)
-    p3 = self.p3(p4, c3)
-    p2 = self.p2(p3, c2)
-
-    # 2) Seg branches (SegBlock -> RA) (Fig.2)
-    s5 = self.ra5(self.seg5(p5))
-    s4 = self.ra4(self.seg4(p4))
-    s3 = self.ra3(self.seg3(p3))
-    s2 = self.ra2(self.seg2(p2))
-
-    # 3) Merge
-    x = self.merge([s5, s4, s3, s2])
-    x = self.dropout(x)
-    return x
+        # Expect last 4 are [c2,c3,c4,c5]
+        c2, c3, c4, c5 = features[-4:]
+    
+        # 1) FPN feature path (NO RA here)
+        p5 = self.p5(c5)
+        p4 = self.p4(p5, c4)
+        p3 = self.p3(p4, c3)
+        p2 = self.p2(p3, c2)
+    
+        # 2) Seg branches (SegBlock -> RA) (Fig.2)
+        s5 = self.ra5(self.seg5(p5))
+        s4 = self.ra4(self.seg4(p4))
+        s3 = self.ra3(self.seg3(p3))
+        s2 = self.ra2(self.seg2(p2))
+    
+        # 3) Merge
+        x = self.merge([s5, s4, s3, s2])
+        x = self.dropout(x)
+        return x
